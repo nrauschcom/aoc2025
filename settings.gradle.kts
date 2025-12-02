@@ -5,4 +5,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "KotlinNativeTemplate"
+rootProject.name = "AdventOfCode2025Native"

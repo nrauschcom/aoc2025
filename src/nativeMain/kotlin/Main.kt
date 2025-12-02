@@ -1,21 +1,33 @@
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.cValue
+import platform.posix.nanosleep
+import platform.posix.timespec
+import shared.io.IOService
+import shared.io.LocalIOService
+import shared.io.StdIOService
+import kotlin.time.measureTime
 
-@Serializable
-private data class Message(
-    val topic: String,
-    val content: String,
-)
+@OptIn(ExperimentalForeignApi::class)
+fun main(args: Array<String>) {
+    val io: IOService? = if (args.contains("--local")) LocalIOService()
+        else StdIOService();
 
-private val PrettyPrintJson = Json {
-    prettyPrint = true
-}
+    // Wait a little to finish startup, will increase runtime a bit
+    nanosleep(cValue<timespec> {
+        tv_sec = 0
+        tv_nsec = 250000000
+    }, null);
 
-fun main() {
-    val message = Message(
-        topic = "Kotlin/Native",
-        content = "Hello!"
-    )
-    println(PrettyPrintJson.encodeToString(message))
+    val DAY = 2;
+    val dayInstance = Day2(DAY, io!!);
+
+    val execTime = measureTime {
+        // slow flag will run the parts separately with debug output, fast mode will try to use runFast()
+        if (args.contains("--slow"))
+            dayInstance.run()
+        else
+            dayInstance.runFast()
+    }
+
+    io.out("Program Execution took $execTime")
 }
