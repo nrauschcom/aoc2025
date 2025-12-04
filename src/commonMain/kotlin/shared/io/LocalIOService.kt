@@ -1,8 +1,8 @@
 package shared.io
 
 import okio.FileSystem
-import okio.Path
 import okio.Path.Companion.toPath
+import okio.SYSTEM
 import okio.buffer
 import okio.use
 
@@ -14,20 +14,27 @@ import okio.use
  * Output and Debugging Information is delivered to Standard Out.
  */
 class LocalIOService() : IOService() {
-    override fun lines(day: Int): Sequence<String> {
+    override fun lines(day: Int): List<String> {
         val resourcePath = "./inputs/day$day.txt".toPath()
+        val seq = mutableListOf<String>()
         FileSystem.SYSTEM.source(resourcePath).use { fileSource ->
             fileSource.buffer().use { bufferedFileSource ->
-                return generateSequence { bufferedFileSource.readUtf8Line() }
+                var line: String?;
+                do {
+                    line = bufferedFileSource.readUtf8Line()
+                    if (line != null)
+                        seq.add(line)
+                } while (line != null)
             }
         }
+        return seq
     }
 
     override fun out(output: String) {
         println("=== $output ===");
     }
 
-    override fun debug(output: String) {
+    override fun debug(output: Any) {
         println("# $output");
     }
 }

@@ -34,11 +34,11 @@ abstract class Day<T>(protected val day: Int, protected val io: IOService) {
         return io.lines(day).first();
     }
 
-    protected fun lines(): Sequence<String> {
+    protected fun lines(): List<String> {
         return io.lines(day)
     }
 
-    protected fun <T> mapLines(mapper: (String) -> T): Sequence<T> {
+    protected fun <T> mapLines(mapper: (String) -> T): List<T> {
         return io.lines(day).map(mapper)
     }
 

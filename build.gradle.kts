@@ -14,14 +14,26 @@ kotlin {
     val hostOs = System.getProperty("os.name")
     val isArm64 = System.getProperty("os.arch") == "aarch64"
     val isMingwX64 = hostOs.startsWith("Windows")
-    val nativeTarget = linuxX64("native") /*when {
-        hostOs == "Mac OS X" && isArm64 -> macosArm64("native")
-        hostOs == "Mac OS X" && !isArm64 -> macosX64("native")
-        hostOs == "Linux" && isArm64 -> linuxArm64("native")
-        hostOs == "Linux" && !isArm64 -> linuxX64("native")
-        isMingwX64 -> mingwX64("native")
+    val tryhardTarget = linuxX64("tryhard")
+    val nativeTarget = when {
+        hostOs == "Linux" && !isArm64 -> linuxX64("host")
+        isMingwX64 -> mingwX64("host")
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-    }*/
+    }
+
+    jvm()
+
+    tryhardTarget.apply {
+        binaries {
+            executable {
+                entryPoint = "main"
+                runTaskProvider?.configure {
+                    standardInput = System.`in`
+                    standardOutput = System.out
+                }
+            }
+        }
+    }
 
     nativeTarget.apply {
         binaries {
@@ -36,9 +48,24 @@ kotlin {
     }
 
     sourceSets {
-        nativeMain.dependencies {
-            implementation(libs.kotlinxSerializationJson)
-            implementation("com.squareup.okio:okio:3.16.2")
+        val commonMain by getting {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+                implementation("com.squareup.okio:okio:3.16.2")
+                implementation(kotlin("stdlib-common"))
+                implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
+            }
         }
+
+        val tryhardMain by getting {
+        }
+
+        val hostMain by getting {
+            dependsOn(tryhardMain)
+        }
+
+        /*val jvmMain by getting {
+            dependsOn(commonMain)
+        }*/
     }
 }
